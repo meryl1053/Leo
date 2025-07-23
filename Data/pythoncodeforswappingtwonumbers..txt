@@ -1,0 +1,69 @@
+```python
+# Method 1: Using a temporary variable
+
+num1 = 10
+num2 = 5
+
+print("Before swapping:")
+print("num1 =", num1)
+print("num2 =", num2)
+
+temp = num1
+num1 = num2
+num2 = temp
+
+print("\nAfter swapping:")
+print("num1 =", num1)
+print("num2 =", num2)
+
+# Method 2: Using tuple packing and unpacking
+
+num1 = 10
+num2 = 5
+
+print("\nBefore swapping:")
+print("num1 =", num1)
+print("num2 =", num2)
+
+num1, num2 = num2, num1
+
+print("\nAfter swapping:")
+print("num1 =", num1)
+print("num2 =", num2)
+
+# Method 3: Using arithmetic operations
+
+num1 = 10
+num2 = 5
+
+print("\nBefore swapping:")
+print("num1 =", num1)
+print("num2 =", num2)
+
+num1 = num1 + num2
+num2 = num1 - num2
+num1 = num1 - num2
+
+print("\nAfter swapping:")
+print("num1 =", num1)
+print("num2 =", num2)
+```
+
+
+**Explanation:**
+
+* **Method 1:** This is the classic method for swapping. It uses a temporary variable (`temp`) to store the value of one number while the other is being assigned.
+
+* **Method 2:** This method uses Python's tuple packing and unpacking feature.  It simultaneously assigns the values of the numbers in reverse order.
+
+* **Method 3:** This method uses arithmetic operations to swap the numbers without needing a temporary variable. It's a bit more complex but can be useful in specific situations.
+
+**Choosing a Method:**
+
+* Method 1 is the most readable and generally preferred for beginners.
+* Method 2 is concise and efficient. 
+* Method 3 is more advanced and might not be as intuitive.
+
+
+
+Let me know if you have any other questions.

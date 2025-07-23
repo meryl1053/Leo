@@ -1,0 +1,15 @@
+```python
+print("Hello, World!")
+```
+
+This single line of code will print the classic "Hello, World!" message to your console. 
+
+**Explanation:**
+
+* `print()`: This is a built-in Python function that displays output to the console.
+* `"Hello, World!"`: This is a string literal, enclosed in double quotes, which contains the text you want to print.
+
+
+
+
+Let me know if you'd like to explore other Python concepts!
