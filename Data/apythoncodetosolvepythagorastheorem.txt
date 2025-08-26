@@ -1,0 +1,42 @@
+```python
+import math
+
+def pythagoras(a, b):
+  """
+  Calculates the hypotenuse of a right triangle using the Pythagorean theorem.
+
+  Args:
+    a: The length of one leg of the triangle.
+    b: The length of the other leg of the triangle.
+
+  Returns:
+    The length of the hypotenuse.
+  """
+  c = math.sqrt(a**2 + b**2)
+  return c
+
+# Get the lengths of the legs from the user
+a = float(input("Enter the length of the first leg: "))
+b = float(input("Enter the length of the second leg: "))
+
+# Calculate the hypotenuse
+hypotenuse = pythagoras(a, b)
+
+# Print the result
+print(f"The length of the hypotenuse is: {hypotenuse}") 
+```
+
+**Explanation:**
+
+1. **Import math module:** This line imports the `math` module, which contains the `sqrt` function for calculating the square root.
+2. **Define the `pythagoras` function:**
+   - It takes two arguments, `a` and `b`, representing the lengths of the two legs.
+   - It calculates the square root of the sum of the squares of `a` and `b` (a² + b²) using `math.sqrt()`, which gives the hypotenuse (`c`).
+   - It returns the calculated hypotenuse.
+3. **Get user input:** The code prompts the user to enter the lengths of the two legs using `input()` and converts them to floating-point numbers using `float()`.
+4. **Calculate hypotenuse:** It calls the `pythagoras` function with the user-provided values and stores the result in the `hypotenuse` variable.
+5. **Print the result:** The final line uses an f-string to print the calculated hypotenuse in a user-friendly format.
+
+
+
+Let me know if you have any other questions!

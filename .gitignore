@@ -1,0 +1,83 @@
+# macOS system files
+.DS_Store
+
+# Python cache & build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+*.so
+*.a
+*.o
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Logs
+*.log
+
+# Databases
+*.db
+*.sqlite3
+
+# Environment variables
+.env
+
+# Audio & media
+*.mp3
+*.wav
+*.ogg
+
+# Images / large assets (keep only source images you actually need)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+
+# 3D Models
+*.obj
+*.stl
+*.glb
+*.gltf
+
+# Research output / generated files
+research_output/
+learning_data/
+logs/
+security_audit.log
+master_integration.log
+leo_integrated.log
+
+# ML / AI models and cache
+shap_e_model_cache/
+stable-dreamfusion/
+shap-e/
+*.pt
+*.ckpt
+*.bin
+*.h5
+*.pkl
+*.joblib
+*.yaml.lock
+
+# Local app/runtime files
+agent_memory.db
+shared_memory.db
+ai_orchestrator.log
+voice_leo.log
+
+# Frontend build caches
+node_modules/
+dist/
+build/
+
+# Misc
+*.swp
+*.bak
+*.tmp

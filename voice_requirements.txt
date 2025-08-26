@@ -1,0 +1,24 @@
+# Voice LEO - Simplified Requirements
+# Core dependencies for voice-focused functionality
+
+# GUI Framework
+PyQt5
+
+# Voice & Audio
+SpeechRecognition>=3.8.0
+pyttsx3>=2.90
+sounddevice>=0.4.0
+pyaudio>=0.2.11
+
+# Core Python packages
+python-dotenv
+requests
+beautifulsoup4
+groq
+
+# Search functionality  
+googlesearch-python
+
+# Basic utilities
+colorama>=0.4.4
+rich
