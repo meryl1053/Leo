@@ -4,6 +4,7 @@ import asyncio
 import edge_tts
 import os
 import logging
+import re
 from dotenv import dotenv_values
 
 # Configure logging
@@ -16,6 +17,33 @@ AssistantVoice = env_vars.get("AssistantVoice", "en-US-GuyNeural")
 
 # File path for TTS output
 SPEECH_FILE_PATH = "Data/speech.mp3"
+
+def remove_markdown(text: str) -> str:
+    """Remove markdown formatting from text for cleaner TTS."""
+    # Remove headers
+    text = re.sub(r'#+\s', '', text)
+    # Remove bold and italics
+    text = re.sub(r'\*(\S(.*?\S)?)\*', r'\1', text)
+    text = re.sub(r'_(\S(.*?\S)?)_', r'\1', text)
+    # Remove strikethrough
+    text = re.sub(r'~(\S(.*?\S)?)~', r'\1', text)
+    # Remove inline code
+    text = re.sub(r'`(.*?)`', r'\1', text)
+    # Remove blockquotes
+    text = re.sub(r'^\s*>\s?', '', text, flags=re.MULTILINE)
+    # Remove lists (asterisk, plus, dash)
+    text = re.sub(r'^\s*[\*\+\-]\s', '', text, flags=re.MULTILINE)
+    # Remove horizontal rules
+    text = re.sub(r'^\s*[-_\*]{3,}\s*$', '', text, flags=re.MULTILINE)
+    # Remove links, keeping the text
+    text = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', text)
+    # Remove images, keeping the alt text
+    text = re.sub(r'!\[(.*?)\]\(.*?\)', r'\1', text)
+    # Remove emojis (optional, can be kept for expressiveness)
+    text = re.sub(r'✅|📊|📁|🎯|•', '', text)
+    # Clean up extra newlines
+    text = re.sub(r'\n{2,}', '\n', text)
+    return text.strip()
 
 # Utility to safely run async functions in sync context
 def run_async(coro):
@@ -30,7 +58,8 @@ async def TextToAudioFile(text: str) -> None:
         os.remove(SPEECH_FILE_PATH)
 
     try:
-        communicate = edge_tts.Communicate(text, AssistantVoice, pitch='+5Hz', rate='+13%')
+        cleaned_text = remove_markdown(text)
+        communicate = edge_tts.Communicate(cleaned_text, AssistantVoice, pitch='+5Hz', rate='+13%')
         await communicate.save(SPEECH_FILE_PATH)
     except Exception as e:
         logger.error(f"[TextToAudioFile] Edge TTS Error: {e}")
@@ -39,7 +68,8 @@ async def TextToAudioFile(text: str) -> None:
 # Core TTS playback function
 def TTS(text: str, func=lambda r=None: True):
     try:
-        run_async(TextToAudioFile(text))
+        cleaned_text = remove_markdown(text)
+        run_async(TextToAudioFile(cleaned_text))
 
         if not pygame.mixer.get_init():
             pygame.mixer.init()
@@ -54,7 +84,7 @@ def TTS(text: str, func=lambda r=None: True):
 
     except Exception as e:
         logger.error(f"[TTS Error] {e}")
-        print("[Fallback] " + text)
+        print("[Fallback] " + remove_markdown(text))
 
     finally:
         try:
