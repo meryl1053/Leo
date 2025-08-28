@@ -690,7 +690,7 @@ def main():
     )
     
     # Basic arguments
-    parser.add_argument("--text", required=True, help="Text prompt for 3D model")
+    parser.add_argument("prompt", type=str, help="Text prompt for 3D model")
     parser.add_argument("--output", default=None, help="Output file path (auto-generated if not specified)")
     
     # Enhanced generation parameters
@@ -748,12 +748,12 @@ def main():
     print(f"Batch size: {config.batch_size}")
     print(f"Steps: {config.steps}")
     print(f"Auto Preview: {config.auto_preview}")
-    print(f"Prompt: '{args.text}'")
+    print(f"Prompt: '{args.prompt}'")
     print("-" * 60)
     
     # Generate enhanced model with auto-generated path
     success, message = generator.generate_enhanced_model(
-        text_prompt=args.text,
+        text_prompt=args.prompt,
         output_path=args.output,
         config=config
     )

@@ -1,0 +1,10 @@
+{
+  "prompt": "a beautiful cat",
+  "num_images": 1,
+  "guidance_scale": 8.5,
+  "num_inference_steps": 75,
+  "use_xl": true,
+  "enhance_images": true,
+  "device": "cpu",
+  "timestamp": "2025-08-28T23:04:50.468609"
+}
