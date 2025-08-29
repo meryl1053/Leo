@@ -644,25 +644,24 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python enhanced_image_gen.py --text "a majestic dragon" --workspace ./dragon_images --num_images 6
-  python enhanced_image_gen.py --text "futuristic cityscape" --workspace ./city --xl --enhance --guidance_scale 8.0
-  python enhanced_image_gen.py --text "portrait of a wise wizard" --workspace ./wizard --num_images 4 --steps 75
+  python Backend/ImageGeneration.py "a majestic dragon"
+  python Backend/ImageGeneration.py "a beautiful sunset over the mountains" --num_images 4 --enhance
         """
     )
     
-    parser.add_argument("--text", type=str, required=True,
+    parser.add_argument("prompt", type=str,
                        help="Text prompt for image generation")
-    parser.add_argument("--workspace", type=str, required=True,
-                       help="Output directory")
-    parser.add_argument("--num_images", type=int, default=8,
-                       help="Number of images to generate (default: 8)")
-    parser.add_argument("--guidance_scale", type=float, default=7.5,
+    parser.add_argument("--workspace", type=str, default="Generated_Images",
+                       help="Output directory (default: Generated_Images)")
+    parser.add_argument("--num_images", type=int, default=1,
+                       help="Number of images to generate (default: 1)")
+    parser.add_argument("--guidance_scale", type=float, default=8.5,
                        help="Guidance scale (1.0-20.0, higher = more prompt adherence)")
-    parser.add_argument("--steps", type=int, default=50,
+    parser.add_argument("--steps", type=int, default=75,
                        help="Number of inference steps (higher = better quality)")
-    parser.add_argument("--xl", action="store_true",
+    parser.add_argument("--xl", action="store_true", default=True,
                        help="Use Stable Diffusion XL (higher quality, slower)")
-    parser.add_argument("--enhance", action="store_true",
+    parser.add_argument("--enhance", action="store_true", default=True,
                        help="Apply post-processing enhancements")
     
     args = parser.parse_args()
@@ -682,7 +681,7 @@ Examples:
     
     # Create and run generator
     generator = EnhancedTextToImage(
-        prompt=args.text,
+        prompt=args.prompt,
         workspace=args.workspace,
         num_images=args.num_images,
         guidance_scale=args.guidance_scale,

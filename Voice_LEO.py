@@ -412,18 +412,27 @@ class VoiceLEO:
             images_dir = Path("Generated_Images")
             images_dir.mkdir(exist_ok=True)
             
-            # Generate image
-            image_generator = EnhancedTextToImage(
-                prompt=prompt,
-                workspace=str(images_dir),
-                num_images=1,
-                enhance_images="enhance",
-                guidance_scale=8.5,
-                num_inference_steps=75,
-                use_xl="xl"
-            )
+            # Generate image in a background thread
+            def generation_task():
+                try:
+                    image_generator = EnhancedTextToImage(
+                        prompt=prompt,
+                        workspace=str(images_dir),
+                        num_images=1,
+                        enhance_images=True,
+                        guidance_scale=8.5,
+                        num_inference_steps=75,
+                        use_xl=True
+                    )
+                    image_generator.run()
+                    self.logger.info(f"Image generation complete for prompt: '{prompt}'")
+                except Exception as e:
+                    self.logger.error(f"Image generation thread error: {e}")
+
+            # Run the generation task in a background thread
+            threading.Thread(target=generation_task, daemon=True).start()
             
-            # This would take some time, so we return immediately
+            # Return immediately
             return f"I'm generating an image of '{prompt}' for you. This may take a few minutes. The image will be saved in the Generated_Images folder."
         
         except Exception as e:
@@ -594,27 +603,53 @@ class VoiceLEO:
         try:
             if not MODEL_MAKER_AVAILABLE:
                 return "3D model generation is not available. Please install required dependencies like shap-e and trimesh."
-            
+
             # Extract the 3D model prompt
             prompt = command.lower()
             for prefix in ['create 3d model', 'generate 3d', 'make 3d model', '3d model']:
                 prompt = prompt.replace(prefix, '').strip()
-            
+
             if not prompt:
                 return "Please tell me what 3D model you'd like me to create. For example: 'create 3D model of a chair' or 'generate 3D car'"
-            
+
             # Create output directory
             models_dir = Path("Generated_3D_Models")
             models_dir.mkdir(exist_ok=True)
-            
-            # Enhance prompt for better 3D generation
-            enhanced_prompt = PromptEnhancer.enhance_prompt(prompt, "realistic")
-            
-            # Generate 3D model (this would typically take time)
-            return f"I'm generating a 3D model of '{prompt}' for you. The enhanced prompt is: '{enhanced_prompt}'. This process may take several minutes. The model will be saved in the Generated_3D_Models folder and automatically opened in a 3D viewer if available."
-        
+
+            # Generate 3D model in a background thread
+            def generation_task():
+                try:
+                    self.logger.info(f"Starting 3D model generation for prompt: '{prompt}'")
+                    model_generator = ModelMaker.EnhancedModelGenerator()
+                    config = ModelMaker.GenerationConfig(quality_preset="balanced", auto_preview=True)
+                    
+                    # Auto-generate output path
+                    clean_name = "".join(c for c in prompt if c.isalnum() or c in (' ', '-', '_')).rstrip()
+                    clean_name = clean_name.replace(' ', '_')
+                    output_path = models_dir / f"{clean_name}.obj"
+
+                    success, message = model_generator.generate_enhanced_model(
+                        text_prompt=prompt,
+                        output_path=str(output_path),
+                        config=config
+                    )
+                    
+                    if success:
+                        self.logger.info(f"3D model generation successful: {message}")
+                    else:
+                        self.logger.error(f"3D model generation failed: {message}")
+
+                except Exception as e:
+                    self.logger.error(f"3D model generation thread error: {e}", exc_info=True)
+
+            # Run the generation task in a background thread
+            threading.Thread(target=generation_task, daemon=True).start()
+
+            # Return immediately
+            return f"I'm generating a 3D model of '{prompt}' for you. This may take a few minutes. The model will be saved in the 'Generated_3D_Models' folder and should open automatically."
+
         except Exception as e:
-            self.logger.error(f"3D model generation error: {e}")
+            self.logger.error(f"3D model generation error: {e}", exc_info=True)
             return "Sorry, I had trouble generating the 3D model. Make sure you have the required 3D modeling dependencies installed."
     
     async def handle_agent_creation(self, command: str) -> str:
