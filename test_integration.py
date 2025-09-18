@@ -416,6 +416,58 @@ async def test_end_to_end():
         print(f"   ❌ End-to-end test failed: {e}")
         return False
 
+async def test_agent_system_integration():
+    """Test the integration of the EnhancedAgentSystem with VoiceLEO"""
+    print("\n9️⃣  Testing Agent System Integration...")
+    try:
+        from Voice_LEO import VoiceLEO
+        
+        voice_leo = VoiceLEO()
+        await voice_leo.initialize()
+        
+        if not voice_leo.agent_system:
+            print("   ❌ Agent system not initialized, skipping test.")
+            return False
+
+        # 1. Submit a task
+        command = "create agent to research dark matter"
+        response = await voice_leo.handle_agent_task(command)
+        
+        if "submitted" not in response or "ID" not in response:
+            print(f"   ❌ Task submission failed. Response: {response}")
+            return False
+        
+        task_id = response.split("ID: ")[1].split('.')[0]
+        print(f"   ✅ Task submitted successfully. Task ID: {task_id}")
+        
+        # Give the system a moment to process
+        await asyncio.sleep(2)
+
+        # 2. Check task status
+        status_command = f"what is the status of task {task_id}"
+        status_response = await voice_leo.handle_get_task_status(status_command)
+        
+        if f"status of task {task_id}" not in status_response:
+            print(f"   ❌ Failed to get task status. Response: {status_response}")
+            return False
+        
+        print(f"   ✅ Task status retrieved successfully. Response: {status_response}")
+        
+        if "pending" in status_response or "in progress" in status_response or "queued" in status_response:
+            print("   ✅ Task status is in a valid initial state.")
+        else:
+            print(f"   ⚠️  Task status is not in an expected initial state: {status_response}")
+
+        # Clean up
+        if voice_leo.agent_system:
+            await voice_leo.agent_system.shutdown()
+        return True
+
+    except Exception as e:
+        print(f"   ❌ Agent system integration test failed: {e}")
+        traceback.print_exc()
+        return False
+
 def print_summary(results):
     """Print test summary"""
     print("\n" + "="*50)
@@ -487,6 +539,10 @@ async def main():
         # Test 8: End-to-end
         e2e_result = await test_end_to_end()
         results.append({'end_to_end': e2e_result})
+
+        # Test 9: Agent System Integration
+        agent_system_result = await test_agent_system_integration()
+        results.append({'agent_system_integration': agent_system_result})
         
         # Print summary
         success_rate = print_summary(results)

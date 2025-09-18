@@ -1,0 +1,54 @@
+
+# Enhanced Multi-Agent System Configuration
+
+database:
+  path: "data/system.db"
+  max_connections: 20
+  connection_timeout: 30
+  pragma_settings:
+    journal_mode: "WAL"
+    synchronous: "NORMAL"
+    cache_size: 10000
+    foreign_keys: true
+    temp_store: "memory"
+
+models:
+  default: "mock-model"  # Change to actual model if you have API keys
+  timeout: 120
+  max_tokens: 4000
+  temperature: 0.7
+  max_retries: 3
+  rate_limit_per_minute: 60
+
+agents:
+  max_count: 100
+  response_timeout: 300
+  health_check_interval: 60
+  max_concurrent_tasks: 10
+
+security:
+  api_key_length: 32
+  session_timeout: 3600
+  max_task_size: 1048576  # 1MB
+  allowed_models:
+    - "mock-model"
+    - "gpt-3.5-turbo"
+    - "gpt-4"
+    - "claude-3"
+  enable_audit_log: true
+
+processing:
+  auto_process: true
+  worker_count: 4
+  batch_size: 5
+  priority_queue_enabled: true
+  task_timeout: 600
+
+monitoring:
+  metrics_enabled: true
+  performance_tracking: true
+  alert_thresholds:
+    cpu_usage: 80.0
+    memory_usage: 85.0
+    error_rate: 5.0
+    response_time: 30.0

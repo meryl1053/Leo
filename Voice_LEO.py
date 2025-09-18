@@ -85,7 +85,7 @@ except ImportError:
 
 # Multi-Agent System
 try:
-    from Backend.UltraAdvancedAgentCreator import EnhancedAgentSystem, SystemConfig, AgentRole, TaskPriority
+    from Backend.UltraAdvancedAgentCreator import EnhancedAgentSystem, SystemConfig, AgentRole, TaskPriority, create_enhanced_config
     AGENT_SYSTEM_AVAILABLE = True
 except ImportError:
     print("⚠️ Agent Creator not available")
@@ -140,6 +140,9 @@ class VoiceLEO:
         # Master Integration System
         self.master_system = None
         
+        # Agent System
+        self.agent_system = None
+        
         # Voice-focused configuration
         self.config = {
             "voice_enabled": True,
@@ -185,6 +188,23 @@ class VoiceLEO:
             else:
                 self.logger.info("⚠️ Master Integration System not available, using basic components")
             
+            # Initialize Agent System
+            if AGENT_SYSTEM_AVAILABLE:
+                try:
+                    config_path = Path("config.yaml")
+                    if not config_path.exists():
+                        self.logger.info(f"'{config_path}' not found, creating one.")
+                        create_enhanced_config()
+
+                    self.logger.info("🌟 Initializing Enhanced Agent System...")
+                    config = SystemConfig.load_from_file(str(config_path))
+                    self.agent_system = EnhancedAgentSystem(config)
+                    await self.agent_system.initialize()
+                    self.logger.info("✅ Enhanced Agent System initialized")
+                except Exception as e:
+                    self.logger.error(f"❌ Agent System initialization failed: {e}", exc_info=True)
+                    self.agent_system = None # ensure it's None on failure
+            
             # Initialize search engine
             if SEARCH_AVAILABLE:
                 if test_groq_connection():
@@ -201,7 +221,7 @@ class VoiceLEO:
             return True
             
         except Exception as e:
-            self.logger.error(f"❌ Initialization failed: {e}")
+            self.logger.error(f"❌ Initialization failed: {e}", exc_info=True)
             traceback.print_exc()
             return False
     
@@ -271,8 +291,10 @@ class VoiceLEO:
                 return await self.handle_3d_model_generation(command)
             
             # Multi-Agent System
+            elif 'task status' in command_lower:
+                return await self.handle_get_task_status(command)
             elif any(word in command_lower for word in ['create agent', 'deploy agent', 'agent team', 'create ai agent']):
-                return await self.handle_agent_creation(command)
+                return await self.handle_agent_task(command)
             
             # System Updates and Management
             elif any(word in command_lower for word in ['update yourself', 'learn new features', 'backup system', 'system update']):
@@ -652,44 +674,83 @@ class VoiceLEO:
             self.logger.error(f"3D model generation error: {e}", exc_info=True)
             return "Sorry, I had trouble generating the 3D model. Make sure you have the required 3D modeling dependencies installed."
     
-    async def handle_agent_creation(self, command: str) -> str:
-        """Handle AI agent creation and management"""
+    async def handle_agent_task(self, command: str) -> str:
+        """Handle AI agent task submission"""
         try:
-            if not AGENT_SYSTEM_AVAILABLE:
-                return "Multi-agent system is not available. Please install required dependencies."
-            
-            # Extract agent type or task
+            if not self.agent_system:
+                return "Multi-agent system is not available or not initialized correctly."
+
             prompt = command.lower()
-            for prefix in ['create agent', 'deploy agent', 'agent team', 'create ai agent']:
-                prompt = prompt.replace(prefix, '').strip()
+            # A more robust way to remove prefixes
+            prefixes_to_remove = ['create agent to', 'deploy agent to', 'agent team to', 'create ai agent to', 'have an agent to', 'ask an agent to', 'create agent', 'deploy agent', 'agent team', 'create ai agent']
+            for prefix in sorted(prefixes_to_remove, key=len, reverse=True):
+                if prompt.startswith(prefix):
+                    prompt = prompt[len(prefix):].strip()
+                    break
             
-            # Determine agent role based on command
-            agent_role = AgentRole.ASSISTANT  # default
-            agent_name = "Assistant Agent"
+            # Determine required capabilities from prompt
+            required_capabilities = []
+            if any(word in prompt for word in ['research', 'find', 'investigate']):
+                required_capabilities.append('research')
+            if any(word in prompt for word in ['analyze', 'data', 'statistics']):
+                required_capabilities.append('analysis')
+            if any(word in prompt for word in ['code', 'program', 'develop', 'implement']):
+                required_capabilities.append('programming')
+            if any(word in prompt for word in ['validate', 'verify', 'check']):
+                required_capabilities.append('validation')
+            if any(word in prompt for word in ['optimize', 'improve', 'enhance']):
+                required_capabilities.append('optimization')
+
+            # Submit the task
+            task_id = await self.agent_system.submit_task(
+                description=prompt,
+                required_capabilities=required_capabilities
+            )
             
-            if any(word in prompt for word in ['research', 'researcher']):
-                agent_role = AgentRole.RESEARCHER
-                agent_name = "Research Agent"
-            elif any(word in prompt for word in ['analysis', 'analyst', 'analyze']):
-                agent_role = AgentRole.ANALYST
-                agent_name = "Analysis Agent"
-            elif any(word in prompt for word in ['coordinate', 'coordinator', 'manage']):
-                agent_role = AgentRole.COORDINATOR
-                agent_name = "Coordination Agent"
-            elif any(word in prompt for word in ['specialist', 'expert']):
-                agent_role = AgentRole.SPECIALIST
-                agent_name = "Specialist Agent"
-            
-            # Create agent system
-            config = SystemConfig()
-            agent_system = EnhancedAgentSystem(config)
-            
-            # This would typically involve more complex agent creation
-            return f"I'm creating a {agent_name} for you with role: {agent_role.value}. This agent will be specialized in {prompt if prompt else 'general assistance'}. The agent system is being initialized with advanced capabilities including task management, health monitoring, and secure communication."
+            return f"I've submitted your task to the agent system with ID: {task_id}. The agents are now working on it. You can ask for the status later."
         
         except Exception as e:
-            self.logger.error(f"Agent creation error: {e}")
-            return "Sorry, I had trouble creating the AI agent. Make sure you have the required multi-agent system dependencies installed."
+            self.logger.error(f"Agent task submission error: {e}", exc_info=True)
+            return "Sorry, I had trouble submitting the task to the agent system."
+    
+    async def handle_get_task_status(self, command: str) -> str:
+        """Handles checking the status of a task in the agent system."""
+        try:
+            if not self.agent_system:
+                return "Multi-agent system is not available or not initialized correctly."
+
+            # Extract task ID from command
+            parts = command.split()
+            task_id = None
+            for part in parts:
+                # Basic check for UUID-like string
+                if '-' in part and len(part) > 20:
+                    task_id = part
+                    break
+            
+            if not task_id:
+                return "I couldn't find a task ID in your request. Please specify the task ID, for example: 'what is the status of task 123e4567-e89b-12d3-a456-426614174000'"
+
+            status_data = await self.agent_system.get_task_status(task_id)
+
+            if not status_data:
+                return f"I couldn't find any information for task ID {task_id}."
+
+            status = status_data.get('status', 'Unknown').replace('_', ' ')
+            result = status_data.get('result')
+            error = status_data.get('error')
+
+            response = f"The status of task {task_id} is {status}."
+            if status == 'completed' and result:
+                response += f" The result is: {result}"
+            elif status == 'failed' and error:
+                response += f" It failed with an error: {error}"
+
+            return response
+
+        except Exception as e:
+            self.logger.error(f"Agent task status error: {e}", exc_info=True)
+            return "Sorry, I had trouble getting the task status."
     
     async def handle_system_updates(self, command: str) -> str:
         """Handle system updates and self-improvement"""
