@@ -11,7 +11,9 @@ LEO is a comprehensive AI assistant that combines multiple capabilities includin
 - 💬 Intelligent conversation  
 - 📊 Data analysis and research  
 - 🎨 Multimodal AI processing (text, voice, images)  
-- ⚡ Resource optimization  
+- ⚡ Resource optimization
+- 🎵 Spotify integration through API
+- 🖥️ Basic System Integration  
 
 ## ✅ Installation Complete  
 
@@ -153,6 +155,8 @@ Voice conversations
 Data analysis
 
 Learning from your preferences
+
+Play music on spotify
 
 And much more!
 
